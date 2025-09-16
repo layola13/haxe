@@ -26,7 +26,6 @@ open Type
 open Error
 open Gctx
 open Hlcode
-open Semver
 
 (* compiler *)
 
