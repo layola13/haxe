@@ -171,6 +171,8 @@ let generate ctx tctx ext actx =
 			Genneko.generate com.neko_lib_paths,"neko"
 		| Js ->
 			Genjs.generate com.js_gen,"js"
+		| TypeScript ->
+			Gents.generate,"typescript"
 		| Lua ->
 			Genlua.generate,"lua"
 		| Php ->

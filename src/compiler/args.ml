@@ -75,6 +75,7 @@ let parse_args com =
 	in
 	let basic_args_spec = [
 		("Target",["--js"],["-js"],Arg.String (set_platform com Js),"<file>","generate JavaScript code into target file");
+		("Target",["--ts"],["-ts"],Arg.String (set_platform com TypeScript),"<file>","generate TypeScript code and .d.ts declaration file");
 		("Target",["--lua"],["-lua"],Arg.String (set_platform com Lua),"<file>","generate Lua code into target file");
 		("Target",["--swf"],["-swf"],Arg.String (set_platform com Flash),"<file>","generate Flash SWF bytecode into target file");
 		("Target",["--neko"],["-neko"],Arg.String (set_platform com Neko),"<file>","generate Neko bytecode into target file");
