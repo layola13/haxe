@@ -163,6 +163,9 @@ module Setup = struct
 			| Eval ->
 				add_std "eval";
 				"eval"
+			| TypeScript ->
+				add_std "js";
+				"ts"
 
 	let init_native_libs com native_libs =
 		(* Native lib pass 1: Register *)
