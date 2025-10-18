@@ -987,8 +987,10 @@ let init_platform com =
 	| Hl ->
 		if Path.file_extension com.file = "c" then define com Define.Hlc;
 	| TypeScript ->
-		(* TypeScript can access js package *)
-		()
+		(* TypeScript can access js package and std types *)
+		com.package_rules <- PMap.remove "js" com.package_rules;
+		(* Define js so that #if js conditions work *)
+		raw_define com "js"
 	| _ ->
 		()
 	end;
