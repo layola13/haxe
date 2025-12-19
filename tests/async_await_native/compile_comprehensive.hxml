@@ -1,0 +1,17 @@
+# Haxe 编译配置 - ComprehensiveTest
+# 全面测试 @:async 和 @:await 元数据
+
+# 主类
+-main ComprehensiveTest
+
+# 输出目标
+-js bin/comprehensive.js
+
+# 启用 ES2017+ 支持 (需要支持 async/await)
+-D js-es=2017
+
+# 生成源码映射以便调试
+-dce no
+
+# 输出详细信息
+-v

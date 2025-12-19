@@ -134,3 +134,6 @@ src/compiler/version.ml
 tests/party
 tests/misc/projects/Issue10863/error.log
 /simple_test/
+.project
+*bin/
+*.log

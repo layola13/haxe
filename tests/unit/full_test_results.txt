@@ -1,0 +1,19 @@
+src/unit/TestMainNow.hx:6: Generated at: 2025-10-19 09:09:15
+src/unit/TestMain.hx:31: START
+16231 | 			} else {
+16232 | 				throw haxe.Exception.thrown("Cannot cast " + Std["string"](o) + " to " + Std["string"](t));
+16233 | 			}
+16234 | 		}
+16235 | 		private static __nativeClassName(o: any /* depth limit */): any /* depth limit */ {
+16236 | 			let name = js.Boot.__toStr.call(o).slice((8),(-1));
+                              ^
+TypeError: undefined is not an object (evaluating 'js.Boot.__toStr.call')
+      at __nativeClassName (\\wsl.localhost\Ubuntu\home\sonygod\projects\haxe\tests\unit\bin\unit.ts:16236:23)
+      at getClass (\\wsl.localhost\Ubuntu\home\sonygod\projects\haxe\tests\unit\bin\unit.ts:16054:24)
+      at addCaseOld (\\wsl.localhost\Ubuntu\home\sonygod\projects\haxe\tests\unit\bin\unit.ts:83611:48)
+      at addCase (\\wsl.localhost\Ubuntu\home\sonygod\projects\haxe\tests\unit\bin\unit.ts:83557:10)
+      at main (\\wsl.localhost\Ubuntu\home\sonygod\projects\haxe\tests\unit\bin\unit.ts:26935:14)
+      at \\wsl.localhost\Ubuntu\home\sonygod\projects\haxe\tests\unit\bin\unit.ts:85876:33
+      at loadAndEvaluateModule (2:1)
+
+Bun v1.2.20 (Windows x64)

@@ -1,0 +1,17 @@
+# Haxe 原生 Async/Await 测试编译配置
+# 需要使用重新编译后的 Haxe 编译器
+
+# 指定主类
+-main Main
+
+# 输出 JavaScript
+-js bin/main.js
+
+# 使用 ES2017+ 以支持原生 async/await
+-D js-es=2017
+
+# 启用调试信息（可选）
+# -debug
+
+# 启用源码映射（可选）
+# -D source-map

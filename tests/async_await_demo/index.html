@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haxe Async/Await Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .info-box ul {
+            margin-left: 20px;
+            color: #555;
+        }
+        
+        .info-box li {
+            margin: 5px 0;
+        }
+        
+        .control-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-clear {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        #console {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            max-height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .console-line {
+            margin: 2px 0;
+        }
+        
+        .console-line.info {
+            color: #4ec9b0;
+        }
+        
+        .console-line.success {
+            color: #6a9955;
+        }
+        
+        .console-line.error {
+            color: #f48771;
+        }
+        
+        .console-line.highlight {
+            color: #dcdcaa;
+            font-weight: bold;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+        
+        .status.ready {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.running {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status.completed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Haxe Async/Await Demo</h1>
+            <p>使用 @:async 和 @:await 元数据的异步编程演示</p>
+        </div>
+        
+        <div class="content">
+            <div class="info-box">
+                <h3>📋 测试场景</h3>
+                <ul>
+                    <li><strong>场景 1:</strong> 简单的 async/await - 基础延迟操作</li>
+                    <li><strong>场景 2:</strong> 链式 await 调用 - 顺序执行多个异步操作</li>
+                    <li><strong>场景 3:</strong> 并行异步操作 - 使用 Promise.all 并发执行</li>
+                    <li><strong>场景 4:</strong> 错误处理 - try/catch 捕获异步错误</li>
+                    <li><strong>场景 5:</strong> 实际应用 - 模拟用户登录流程</li>
+                </ul>
+            </div>
+            
+            <div class="control-panel">
+                <button class="btn" onclick="runTests()">▶️ 运行所有测试</button>
+                <button class="btn btn-clear" onclick="clearConsole()">🗑️ 清空控制台</button>
+                <div>
+                    <span id="status" class="status ready">状态: 就绪</span>
+                </div>
+            </div>
+            
+            <div id="console"></div>
+        </div>
+        
+        <div class="footer">
+            <p>Haxe 编译器版本: <span id="haxe-version">检测中...</span></p>
+            <p>编译时间: <span id="compile-time">-</span></p>
+        </div>
+    </div>
+
+    <script src="bin/async_await_test.js"></script>
+    
+    <script>
+        // 自定义控制台输出
+        const consoleDiv = document.getElementById('console');
+        const statusSpan = document.getElementById('status');
+        let lineCount = 0;
+        
+        // 重写 console.log 以在页面上显示
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            
+            const text = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            const line = document.createElement('div');
+            line.className = 'console-line';
+            
+            // 根据内容添加样式
+            if (text.includes('===') || text.includes('场景')) {
+                line.className += ' highlight';
+            } else if (text.includes('✓') || text.includes('成功') || text.includes('完成')) {
+                line.className += ' success';
+            } else if (text.includes('✗') || text.includes('失败') || text.includes('错误')) {
+                line.className += ' error';
+            } else if (text.includes('步骤') || text.includes('...')) {
+                line.className += ' info';
+            }
+            
+            line.textContent = text;
+            consoleDiv.appendChild(line);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+            
+            lineCount++;
+        };
+        
+        function clearConsole() {
+            consoleDiv.innerHTML = '';
+            lineCount = 0;
+            updateStatus('ready', '状态: 就绪');
+        }
+        
+        function updateStatus(type, text) {
+            statusSpan.className = 'status ' + type;
+            statusSpan.textContent = text;
+        }
+        
+        function runTests() {
+            clearConsole();
+            updateStatus('running', '状态: 运行中...');
+            statusSpan.classList.add('loading');
+            
+            console.log('='.repeat(50));
+            console.log('开始运行 Haxe Async/Await 测试');
+            console.log('='.repeat(50));
+            console.log('');
+            
+            // 调用 Haxe 编译后的测试函数
+            try {
+                AsyncAwaitTest.main();
+                
+                // 等待所有异步操作完成后更新状态
+                setTimeout(() => {
+                    console.log('');
+                    console.log('='.repeat(50));
+                    console.log('✓ 所有测试场景已启动');
+                    console.log('='.repeat(50));
+                    updateStatus('completed', '状态: 已完成');
+                    statusSpan.classList.remove('loading');
+                }, 100);
+            } catch (e) {
+                console.log('');
+                console.log('✗ 运行测试时出错: ' + e);
+                updateStatus('error', '状态: 错误');
+                statusSpan.classList.remove('loading');
+            }
+        }
+        
+        // 页面加载完成后的初始化
+        window.addEventListener('load', function() {
+            console.log('Haxe Async/Await Demo 已加载');
+            console.log('点击 "运行所有测试" 按钮开始测试');
+            console.log('');
+            
+            // 显示编译时间
+            document.getElementById('compile-time').textContent = new Date().toLocaleString('zh-CN');
+            
+            // 尝试检测 Haxe 版本（如果编译器注入了版本信息）
+            const versionElement = document.getElementById('haxe-version');
+            if (typeof haxe !== 'undefined') {
+                versionElement.textContent = '已加载';
+            } else {
+                versionElement.textContent = '已编译';
+            }
+        });
+        
+        // 添加键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + Enter 运行测试
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                runTests();
+            }
+            // Ctrl/Cmd + L 清空控制台
+            if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+                e.preventDefault();
+                clearConsole();
+            }
+        });
+    </script>
+</body>
+</html>

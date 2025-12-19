@@ -1921,6 +1921,17 @@ and type_expr ?(mode=MGet) ctx (e,p) (with_type:WithType.t) =
 		let e = type_expr ctx e (WithType.with_type t) in
 		let e = AbstractCast.cast_or_unify ctx t e p in
 		if e.etype == t then e else mk (TCast (e,None)) t p
+	| EMeta ((Meta.Await,_,_) as m,e1) ->
+		(* Special handling for await: extract T from Promise<T> *)
+		let e = type_expr ctx e1 WithType.value in
+		let t_inner = match follow e.etype with
+			| TAbstract({a_path = (["js";"lib"],"Promise")}, [t]) -> t
+			| TInst({cl_path = (["js";"lib"],"Promise")}, [t]) -> t
+			| _ ->
+				display_error ctx.com "await can only be used with js.lib.Promise<T>" e.epos;
+				e.etype
+		in
+		mk (TMeta(m,e)) t_inner p
 	| EMeta (m,e1) ->
 		type_meta ~mode ctx m e1 with_type p
 	| EIs (e,(t,p_t)) ->

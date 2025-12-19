@@ -1,0 +1,9 @@
+-D source-header=
+--debug
+-p src
+-lib utest
+-D haxe-next
+
+# 只测试一个简单的类
+--main unit.TestMainMinimal
+--ts bin/test-abstract-minimal.ts

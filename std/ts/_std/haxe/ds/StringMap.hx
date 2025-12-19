@@ -26,7 +26,10 @@ import js.lib.Object;
 import haxe.Constraints.IMap;
 import haxe.DynamicAccess;
 
+// TypeScript目标强制使用ES5的Object.create(null)方法，避免保留字问题
 #if (js_es >= 6)
+// 禁用ES6版本，强制使用ES5
+#elseif (js_es == 5)
 @:coreApi class StringMap<T> implements IMap<String, T> {
 	private var m:js.lib.Map<String, T>;
 
@@ -91,7 +94,8 @@ import haxe.DynamicAccess;
 		return m.size;
 	}
 }
-#elseif (js_es == 5)
+#else
+// TypeScript目标：使用ES5的Object.create(null)方法
 @:coreApi class StringMap<T> implements IMap<String, T> {
 	var h:Dynamic;
 
@@ -211,7 +215,9 @@ private class StringMapKeyValueIterator<T> {
 		return {key: key, value: h[cast key]};
 	}
 }
-#else
+
+// 删除旧的依赖__map_reserved的实现
+#if false
 private class StringMapIterator<T> {
 	var map:StringMap<T>;
 	var keys:Array<String>;
@@ -360,8 +366,7 @@ private class StringMapIterator<T> {
 		return s;
 	}
 
-	static function __init__():Void {
-		js.Syntax.code("var __map_reserved = {};");
-	}
+	// 不再需要__map_reserved
 }
+#end
 #end

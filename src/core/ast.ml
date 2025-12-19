@@ -65,6 +65,8 @@ type keyword =
 	| Final
 	| Operator
 	| Overload
+	| Async
+	| Await
 
 type binop =
 	| OpAdd
@@ -567,6 +569,8 @@ let s_keyword = function
 	| Final -> "final"
 	| Operator -> "operator"
 	| Overload -> "overload"
+	| Async -> "async"
+	| Await -> "await"
 
 let rec s_binop = function
 	| OpAdd -> "+"

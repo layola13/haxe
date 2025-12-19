@@ -174,6 +174,8 @@ enum ValueType {
 	#if (js_es >= 6)
 	public static function getInstanceFields(c:Class<Dynamic>):Array<String> {
 		var result = [];
+		// 添加null检查
+		if (c == null || untyped c.prototype == null) return [];
 		while (c != null) {
 			for (name in js.lib.Object.getOwnPropertyNames((cast c).prototype)) {
 				switch name {
@@ -208,7 +210,8 @@ enum ValueType {
 	#else
 	public static function getInstanceFields(c:Class<Dynamic>):Array<String> {
 		var a = [];
-		js.Syntax.code("for(var i in c.prototype) a.push(i)");
+		// 使用untyped __js__直接生成包含null检查的完整代码
+		untyped __js__("if ({0} == null || {0}.prototype == null) return []; for(var i in {0}.prototype) {1}.push(i)", c, a);
 		a.remove("__class__");
 		a.remove("__properties__");
 		return a;

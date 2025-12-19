@@ -132,7 +132,7 @@ let keywords =
 		Catch;New;This;Throw;Extern;Enum;In;Interface;
 		Cast;Override;Dynamic;Typedef;Package;
 		Inline;Using;Null;True;False;Abstract;Macro;Final;
-		Operator;Overload];
+		Operator;Overload;Async;Await];
 	h
 
 let is_valid_identifier s =
@@ -813,6 +813,8 @@ let rec token ctx lexbuf =
 	| "new" -> mk_keyword lexbuf New
 	| "in" -> mk_keyword lexbuf In
 	| "cast" -> mk_keyword lexbuf Cast
+	| "async" -> mk_keyword lexbuf Async
+	| "await" -> mk_keyword lexbuf Await
 	| ident -> mk_ident ctx lexbuf
 	| idtype -> mk lexbuf (Const (Ident (lexeme lexbuf)))
 	| _ -> invalid_char ctx lexbuf

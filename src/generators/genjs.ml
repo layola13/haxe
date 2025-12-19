@@ -41,6 +41,7 @@ type ctx = {
 	mutable tabs : string;
 	mutable in_value : tvar option;
 	mutable in_loop : bool;
+	mutable in_async : bool;
 	mutable id_counter : int;
 	mutable type_accessor : module_type -> string;
 	mutable separator : bool;
@@ -561,6 +562,16 @@ and gen_expr ctx e =
 		spr ctx "(";
 		gen_value ctx e;
 		spr ctx ")";
+	| TMeta ((Meta.Await,_,_), e1) ->
+		if ctx.es_version >= 7 then begin
+			if not ctx.in_async then
+				print ctx "/* Warning: await outside async function */ ";
+			spr ctx "await ";
+			gen_expr ctx e1
+		end else begin
+			print ctx "/* Warning: await requires ES2017+, ignored */ ";
+			gen_expr ctx e1
+		end
 	| TMeta ((Meta.LoopLabel,[(EConst(Int (n, _)),_)],_), e) ->
 		(match e.eexpr with
 		| TWhile _ ->
@@ -609,6 +620,17 @@ and gen_expr ctx e =
 		spr ctx (ident v.v_name);
 		begin match eo with
 			| None -> ()
+			| Some ({eexpr = TMeta ((Meta.Await,_,_), e1)} as e) ->
+				spr ctx " = ";
+				if ctx.es_version >= 7 then begin
+					if not ctx.in_async then
+						print ctx "/* Warning: await outside async function */ ";
+					spr ctx "await ";
+					gen_value ctx e1
+				end else begin
+					print ctx "/* Warning: await requires ES2017+, ignored */ ";
+					gen_value ctx e1
+				end
 			| Some e ->
 				spr ctx " = ";
 				gen_value ctx e
@@ -733,10 +755,15 @@ and gen_expr ctx e =
 	);
 	clear_mapping ()
 
-and gen_function ?(keyword="function") ctx f pos =
-	let old = ctx.in_value, ctx.in_loop in
+and gen_function ?(keyword="function") ?(cf_meta=[]) ctx f pos =
+	let old = ctx.in_value, ctx.in_loop, ctx.in_async in
 	ctx.in_value <- None;
 	ctx.in_loop <- false;
+	
+	(* Check if function has @:async metadata *)
+	let is_async = Meta.has Meta.Async cf_meta in
+	ctx.in_async <- is_async;
+	
 	let mk_non_rest_arg_names =
 		List.map (fun (v,_) ->
 			check_var_declaration v;
@@ -771,10 +798,26 @@ and gen_function ?(keyword="function") ctx f pos =
 		| _ ->
 			f, mk_non_rest_arg_names f.tf_args
 	in
+	
+	(* Add async keyword if needed - must handle static methods specially *)
+	let keyword = if is_async && ctx.es_version >= 7 then
+		(* For static methods, need "static async" not "async static" *)
+		if String.length keyword >= 7 && String.sub keyword 0 7 = "static " then
+			"static async" ^ String.sub keyword 6 (String.length keyword - 6)
+		else
+			"async " ^ keyword
+	else if is_async && ctx.es_version < 7 then begin
+		print ctx "/* Warning: @:async requires ES2017+, ignored */ ";
+		keyword
+	end else
+		keyword
+	in
+	
 	print ctx "%s(%s) " keyword (String.concat "," args);
 	gen_expr ctx (fun_block ctx f pos);
-	ctx.in_value <- fst old;
-	ctx.in_loop <- snd old;
+	ctx.in_value <- (match old with (a,_,_) -> a);
+	ctx.in_loop <- (match old with (_,b,_) -> b);
+	ctx.in_async <- (match old with (_,_,c) -> c);
 	ctx.separator <- true
 
 and gen_block_element ?(newline_after=false) ?(keep_blocks=false) ctx e =
@@ -844,6 +887,12 @@ and gen_value ctx e =
 	| TFunction _
 	| TIdent _ ->
 		gen_expr ctx e
+	| TMeta ((Meta.Await,_,_), e1) ->
+		if ctx.es_version >= 7 then begin
+			spr ctx "await ";
+			gen_value ctx e1
+		end else
+			gen_value ctx e1
 	| TMeta (_,e1) ->
 		gen_value ctx e1
 	| TCall (e,el) ->
@@ -1276,9 +1325,10 @@ let generate_class_es6 ctx c =
 	let close_block = open_block ctx in
 
 	(match c.cl_constructor with
-	| Some { cf_expr = Some ({ eexpr = TFunction f; epos = p }) } ->
+	| Some { cf_expr = Some ({ eexpr = TFunction f; epos = p }); cf_meta = meta } ->
 		newline ctx;
-		gen_function ~keyword:"constructor" ctx f p;
+		(* gen_function will add async prefix based on cf_meta *)
+		gen_function ~cf_meta:meta ~keyword:"constructor" ctx f p;
 		ctx.separator <- false
 	| _ -> ());
 
@@ -1292,7 +1342,9 @@ let generate_class_es6 ctx c =
 			| Method _, Some { eexpr = TFunction f; epos = pos } ->
 				check_field_name c cf;
 				newline ctx;
-				gen_function ~keyword:(method_def_name cf) ctx f pos;
+				let base_keyword = method_def_name cf in
+				(* gen_function will add async prefix based on cf_meta *)
+				gen_function ~cf_meta:cf.cf_meta ~keyword:base_keyword ctx f pos;
 				ctx.separator <- false;
 				false
 			| _ ->
@@ -1307,7 +1359,9 @@ let generate_class_es6 ctx c =
 			| Method _, Some { eexpr = TFunction f; epos = pos } ->
 				check_field_name c cf;
 				newline ctx;
-				gen_function ~keyword:("static " ^ (method_def_name cf)) ctx f pos;
+				let base_keyword = "static " ^ (method_def_name cf) in
+				(* gen_function will add async prefix based on cf_meta *)
+				gen_function ~cf_meta:cf.cf_meta ~keyword:base_keyword ctx f pos;
 				ctx.separator <- false;
 
 				process_expose cf.cf_meta (fun () -> dotp  ^ "." ^ cf.cf_name) (fun s -> exposed_static_methods := (s,cf.cf_name) :: !exposed_static_methods);
@@ -1636,6 +1690,7 @@ let alloc_ctx com es_version =
 		tabs = "";
 		in_value = None;
 		in_loop = false;
+		in_async = false;
 		id_counter = 0;
 		type_accessor = (fun _ -> die "" __LOC__);
 		separator = false;

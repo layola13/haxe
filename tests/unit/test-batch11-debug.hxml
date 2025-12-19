@@ -1,0 +1,9 @@
+-D source-header=
+--debug
+-p src
+-lib utest
+-D haxe-next
+
+# 只测试TestBigInt
+unit.tests.TestBigInt
+--ts bin/test-batch11-debug.ts

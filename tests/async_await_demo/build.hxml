@@ -1,0 +1,22 @@
+# Haxe Async/Await Demo 编译配置
+
+# 主类
+-main AsyncAwaitTest
+
+# 目标平台：JavaScript
+-js bin/async_await_test.js
+
+# 启用源码映射（用于调试）
+-D source-map
+
+# 启用 async/await 支持
+-D js-es=6
+
+# 输出可读的 JS 代码
+-D js-unflatten
+
+# 启用详细输出
+-v
+
+# 警告设置
+-D warn-var-shadowing

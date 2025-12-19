@@ -1,0 +1,17 @@
+src/unit/TestMainNow.hx:6: Generated at: 2025-10-19 22:35:14
+src/unit/TestMain.hx:31: START
+83610 | 			}
+83611 | 			if ((!this.isMethod(test,teardownAsync))) {
+83612 | 				teardownAsync = null;
+83613 | 			}
+83614 | 			let fields = Type.getInstanceFields(js.Boot.getClass(test));
+83615 | 			let c = js.Boot.getClass(test);
+                                        ^
+TypeError: null is not an object (evaluating 'js.Boot.getClass(test).__name__')
+      at addCaseOld (\\wsl.localhost\Ubuntu\home\sonygod\projects\haxe\tests\unit\bin\unit.ts:83615:33)
+      at addCase (\\wsl.localhost\Ubuntu\home\sonygod\projects\haxe\tests\unit\bin\unit.ts:83560:10)
+      at main (\\wsl.localhost\Ubuntu\home\sonygod\projects\haxe\tests\unit\bin\unit.ts:26938:14)
+      at \\wsl.localhost\Ubuntu\home\sonygod\projects\haxe\tests\unit\bin\unit.ts:85886:33
+      at loadAndEvaluateModule (2:1)
+
+Bun v1.2.20 (Windows x64)

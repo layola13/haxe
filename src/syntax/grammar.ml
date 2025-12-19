@@ -916,6 +916,22 @@ and parse_enum_param ctx = function%parser
 	| [ [%let name,_p = ident]; [%let t = parse_type_hint ctx] ] -> (name,false,t)
 
 and parse_function_field ctx doc meta al = function%parser
+	| [ (Kwd Async,p_async); (Kwd Function,p1); parse_fun_name as name; [%let pl = parse_constraint_params ctx]; (POpen,_); [%let args = psep_trailing Comma (parse_fun_param ctx)]; (PClose,_); [%let t = popt (parse_type_hint ctx)]; [%s s] ] ->
+		let e, p2 = (match%parser s with
+			| [ [%let e = expr ctx] ] ->
+				ignore(semicolon ctx s);
+				Some e, pos e
+			| [ [%let p = semicolon ctx] ] -> None, p
+			| [ ] -> serror()
+		) in
+		let f = {
+			f_params = pl;
+			f_args = args;
+			f_type = t;
+			f_expr = e;
+		} in
+		let meta = (Meta.Async,[],p_async) :: meta in
+		name,punion p_async p2,FFun f,al,meta
 	| [ (Kwd Function,p1); parse_fun_name as name; [%let pl = parse_constraint_params ctx]; (POpen,_); [%let args = psep_trailing Comma (parse_fun_param ctx)]; (PClose,_); [%let t = popt (parse_type_hint ctx)]; [%s s] ] ->
 		let e, p2 = (match%parser s with
 			| [ [%let e = expr ctx] ] ->
@@ -1173,9 +1189,17 @@ and parse_block_var ctx = function%parser
 and parse_block_elt ctx s = match%parser s with
 	| [ [%let vl,p = parse_block_var ctx] ] ->
 		(EVars vl,p)
+	| [ (Kwd Async,p_async); (Kwd Function,p1); [%let e = parse_function ctx p1 false] ] ->
+		let e_async = make_meta Meta.Async [] e p_async in
+		ignore(semicolon ctx s);
+		e_async
 	| [ (Kwd Function,p1); [%let e = parse_function ctx p1 false]; [%let _s = semicolon ctx] ]  -> e
 	| [ (Kwd Inline,p1) ] ->
 		begin match%parser s with
+		| [ (Kwd Async,p_async); (Kwd Function,_); [%let e = parse_function ctx p_async true] ] ->
+			let e_async = make_meta Meta.Async [] e p_async in
+			ignore(semicolon ctx s);
+			e_async
 		| [ (Kwd Function,_); [%let e = parse_function ctx p1 true]; [%let _s = semicolon ctx] ] -> e
 		| [ [%let e = secure_expr ctx]; [%let _s = semicolon ctx] ] -> make_meta Meta.Inline [] e p1
 		| [ ] -> serror()
@@ -1496,6 +1520,16 @@ and expr (ctx : parser_ctx) s = match%parser s with
 				syntax_error ctx (Expected [")";",";":"]) s (expr_next ctx (EParenthesis e, punion p1 (pos e)) s))
 		)
 	| [ (BkOpen,p1); [%let e = parse_array_decl ctx p1] ] -> expr_next ctx e s
+	| [ (Kwd Async,p_async); (Kwd Function,p1); [%let e = parse_function ctx p1 false]; [%s s]; ] ->
+		let e_async = make_meta Meta.Async [] e p_async in
+		begin match Stream.peek s with
+		| Some (POpen,_) | Some (BkOpen,_) ->
+			e_async
+		| Some (Unop op, _) when is_postfix op ->
+			e_async
+		| _ ->
+			expr_next ctx e_async s
+		end
 	| [ (Kwd Function,p1); [%let e = parse_function ctx p1 false]; [%s s]; ] ->
 		begin match Stream.peek s with
 		| Some (POpen,_) | Some (BkOpen,_) ->
@@ -1587,6 +1621,7 @@ and expr (ctx : parser_ctx) s = match%parser s with
 	| [ (Kwd Try,p1); [%let e = secure_expr ctx]; [%let cl,p2 = parse_catches ctx e [] (pos e)] ] -> (ETry (e,cl),punion p1 p2)
 	| [ (IntInterval i,p1); [%let e2 = expr ctx] ] -> make_binop OpInterval (EConst (Int (i, None)),p1) e2
 	| [ (Kwd Untyped,p1); [%let e = secure_expr ctx] ] -> (EUntyped e,punion p1 (pos e))
+	| [ (Kwd Await,p1); [%let e = secure_expr ctx] ] -> make_meta Meta.Await [] e p1
 	| [ (Dollar v,p) ] -> expr_next ctx (EConst (Ident ("$"^v)),p) s
 	| [ (Kwd Inline,p); [%let e = secure_expr ctx] ] -> make_meta Meta.Inline [] e p
 

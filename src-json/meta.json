@@ -1138,5 +1138,21 @@
 		"metadata": ":nativeArrayAccess",
 		"doc": "When used on an extern class which implements haxe.ArrayAccess native array access syntax will be generated",
 		"platforms": ["cpp"]
+	},
+	{
+		"name": "Async",
+		"metadata": ":async",
+		"doc": "Marks a function as async, generating native JavaScript async function. Requires ES2017+.",
+		"platforms": ["js"],
+		"targets": ["TClassField"],
+		"links": ["https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function"]
+	},
+	{
+		"name": "Await",
+		"metadata": ":await",
+		"doc": "Marks an expression as await, generating native JavaScript await expression. Must be used inside async functions.",
+		"platforms": ["js"],
+		"targets": ["TExpr"],
+		"links": ["https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await"]
 	}
 ]

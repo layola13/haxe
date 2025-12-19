@@ -1,0 +1,16 @@
+2143 | 		}
+2144 | 	}
+2145 | export namespace haxe {
+2146 | export class Log {
+2147 | 	public static formatOutput(v: any /* depth limit */, infos: any /* depth limit */): any /* depth limit */ {
+2148 | 			let str = Std.$string(v);
+                        ^
+TypeError: Std.$string is not a function. (In 'Std.$string(v)', 'Std.$string' is undefined)
+      at formatOutput (\\wsl.localhost\Ubuntu\home\sonygod\projects\haxe\tests\unit\bin\unit.ts:2148:18)
+      at trace (\\wsl.localhost\Ubuntu\home\sonygod\projects\haxe\tests\unit\bin\unit.ts:2161:23)
+      at printNow (\\wsl.localhost\Ubuntu\home\sonygod\projects\haxe\tests\unit\bin\unit.ts:26982:13)
+      at main (\\wsl.localhost\Ubuntu\home\sonygod\projects\haxe\tests\unit\bin\unit.ts:25774:22)
+      at \\wsl.localhost\Ubuntu\home\sonygod\projects\haxe\tests\unit\bin\unit.ts:85876:33
+      at loadAndEvaluateModule (2:1)
+
+Bun v1.2.20 (Windows x64)

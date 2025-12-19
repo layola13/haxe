@@ -1,0 +1,8 @@
+-D source-header=
+--debug
+-p src
+-lib utest
+-D haxe-next
+--times
+unit.TestBigInt
+--ts bin/test-bigint-simple.ts
